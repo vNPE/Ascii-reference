@@ -1,11 +1,9 @@
 #include <stdio.h>
-#ifdef _WIN32
-    #include <windows.h>
-#endif
+#include <string.h>
 
 #define YELLOW "\x1B[0;33m"
 #define GREEN  "\x1B[0;32m"
-#define HGREEN "\x1B[92m"
+#define BRIGHT_GREEN "\x1B[92m"
 #define RESET  "\x1B[0m"
 
 const char *ctrl_name(int c) {
@@ -20,14 +18,13 @@ const char *ctrl_name(int c) {
     }
 }
 
-
 void printTable(int columns){
     columns = columns/16.5>=8 ? 8 : columns/16.5;
     int space=1;
     printf(YELLOW"Your friendly neighborhood ASCII table:\n"RESET);
 
     for(int i=0;i<=127;i++){
-        printf(HGREEN"%d"RESET":", i);
+        printf(BRIGHT_GREEN"%d"RESET":", i);
         for(int j=i; j>=10; space++)
             j/=10;
         for(int j=7-space; j>0; j--)
@@ -44,18 +41,27 @@ void printTable(int columns){
 
 }
 
-void win_size(){
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    int columns;
+#ifdef _WIN32
+    #include <windows.h>
 
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    printTable(columns);
-}
+    void win_size(){
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        int columns;
 
-void linux_size(){
-    printTable(150);
-}
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+        columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+        printTable(columns);
+    }
+
+#elif __linux__
+    #include <sys/ioctl.h>
+
+    void linux_size(){
+        struct winsize sz;
+        ioctl( 0, TIOCGWINSZ, &sz );
+        printTable(sz.ws_col);
+    }
+#endif
 
 int main(void){
     #ifdef _WIN32
