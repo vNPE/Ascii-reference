@@ -38,7 +38,7 @@ void printTable(int columns){
                 putchar(' ');
         space=1;
     }
-
+    putchar('\n');
 }
 
 #ifdef _WIN32
